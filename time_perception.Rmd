@@ -1,0 +1,177 @@
+---
+title: "10.0: How long is a minute?"
+author: "Math 190 Instructors"
+date: "February 22, 2017"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+
+combine_trials <- function(df){
+  retdf <- vector()
+  for (trial in names(df)){
+    retdf <- append(retdf,df[[trial]])
+  }
+  retdf <- data.frame(retdf)
+  names(retdf) <- "all_trials"
+  retdf$count <- seq(1,nrow(retdf),1)
+  return(retdf)
+}
+
+filterdf <- function(df,var,low,high){
+  return(df[df[[var]] > low & df[[var]] < high,])
+}
+
+
+```
+## Introduction
+
+We have all heard the phrase "Time flies when you are having fun" or felt the agony of the last 5 minutes of a 3 hour long class! (it's not that bad!) In this class we are going to answer the question, "How long is a minute?". Or better yet, how long to we feel that a minute is. Today we are going to do a little experiment where we record how each of us perceive the passage of one minute. 
+
+## Beginning Questions
+
+  1) Do you think that your perception of a minute passing will be "accurate"?
+  2) Do you think that everyone will have the same perception of time, or will there be some variation?
+  3) If you were to repeat this experiment, would you get more accurate?
+
+## Instructions
+
+First you will find, or be assigned, a partner whom will be using either their cellphones or a stopwatch that they will use to record time. This partner will begin their stopwatch and you will tell them to stop when you feel as if one minute has passed. Record the number of seconds that have passed and repeat three times. Switch places with your partner and record their times. Bring all six times up to your professor who will record them in a spreadsheet.
+
+
+```{r, echo=FALSE}
+inputPanel(
+fileInput('file1',"Upload class data",
+            accept = c(
+            "text/csv",
+            "text/comma-separated-values,text/plain",
+            ".csv")),
+selectInput(inputId = "trial", choices = c("All Trials","1st","2nd","3rd"),label = "Trials")
+)
+renderPlot({
+  
+  infile <- input$file1
+  
+  if(is.null(infile)){
+    return(NULL)
+  } else {
+   class_data<-read.csv(infile$datapath)
+   
+   if (input$trial == "All Trials"){
+     
+
+     p <- ggplot(combine_trials(class_data), aes(x=all_trials))
+     
+   } else if (input$trial == "1st") {
+     
+     p <- ggplot(class_data, aes(x=trial1))
+     
+   } else if ( input$trial == "2nd") {
+     
+     p <- ggplot(class_data, aes(x=trial2))
+     
+   } else if ( input$trial == "3rd") {
+     
+     p <- ggplot(class_data, aes(x=trial3))
+     
+   }
+   p <- p +
+        geom_dotplot() + 
+        scale_x_continuous(breaks=seq(2,200,1)) +
+        xlab("Number of Seconds") +
+        theme(
+          text=element_text(size=25),
+          axis.line.y =element_blank(),
+          axis.text.y=element_blank(),
+          axis.text.x=element_text(angle=60,hjust = 1),
+          axis.ticks.y = element_blank(),
+          axis.title.y=element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          legend.position="none"
+        )
+  } 
+   p
+})
+
+```
+
+## Group Discussion
+
+Once all of the times have been recorded and displayed we would like for your group to complete this sentence:
+
+>The typical number of seconds that this class felt that a minute was is _______ give or take about _______ seconds
+
+```{r,echo=FALSE}
+inputPanel(
+numericInput(inputId = 'est_avg',label = 'Typical number of seconds',value = 60),
+numericInput(inputId = 'est_sd',label='give or take', value = 3)
+)
+
+renderPlot({
+  infile <- input$file1
+  est_avg <- input$est_avg
+  est_sd <- input$est_sd
+  
+  if(is.null(infile)){
+    return(NULL)
+  } else {
+   class_data<-read.csv(infile$datapath)
+   
+   if (input$trial == "All Trials"){
+      typical_data <- filterdf(combine_trials(class_data),"all_trials", est_avg-est_sd, est_avg + est_sd)
+      print(typical_data$all_trials)
+      p <- ggplot(combine_trials(class_data), aes(x=all_trials)) + 
+        geom_dotplot() +
+        geom_dotplot(data=typical_data,aes(x=all_trials,fill='red'))
+     
+   } else if (input$trial == "1st") {
+      typical_data <- filterdf(class_data, "trial1",est_avg-est_sd, est_avg + est_sd)
+
+      p <- ggplot(class_data, aes(x=trial1)) +
+        geom_dotplot() +
+        geom_dotplot(data=typical_data,aes(x=trial1,fill='red'))
+   
+    } else if ( input$trial == "2nd") {
+      typical_data <- filterdf(class_data, "trial2",est_avg-est_sd, est_avg + est_sd)
+
+      p <- ggplot(class_data, aes(x=trial2)) +
+        geom_dotplot() +
+        geom_dotplot(data=typical_data,aes(x=trial2,fill='red'))
+     
+   } else if ( input$trial == "3rd") {
+      typical_data <- filterdf(class_data, "trial3",est_avg-est_sd, est_avg + est_sd)
+
+      p <- ggplot(class_data, aes(x=trial3)) +
+        geom_dotplot() +
+        geom_dotplot(data=typical_data,aes(x=trial3,fill='red'))
+   }
+   p <- p +
+        scale_x_continuous(breaks=seq(2,200,1)) +
+        xlab("Number of Seconds") +
+        theme(
+          text=element_text(size=25),
+          axis.line.y =element_blank(),
+          axis.text.x=element_text(angle=60,hjust = 1),
+          axis.text.y=element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.title.y=element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          legend.position="none"
+        )
+  } 
+   p
+   
+})
+
+```
+
+Once you see the ways that your fellow groups have completed the prior sentence. Discuss the following questions:
+
+1) How did your group decide on those numbers? 
+2) Looking at the answers from all the groups which number do you think says more? Why?  
+3) Do we hope to see a large variation or a small variation in the data?  
