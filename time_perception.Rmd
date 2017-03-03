@@ -25,6 +25,16 @@ filterdf <- function(df,var,low,high){
   return(df[df[[var]] > low & df[[var]] < high,])
 }
 
+plot_options <- theme(
+                    text=element_text(size=25),
+                    axis.line.y =element_blank(),
+                    axis.text.y=element_blank(),
+                    axis.text.x=element_text(angle=60,hjust = 1),
+                    axis.ticks.y = element_blank(),
+                    axis.title.y=element_blank(),
+                    panel.grid.major.y = element_blank(),
+                    panel.grid.minor.y = element_blank(),
+                    legend.position="none")
 
 ```
 ## Introduction
@@ -62,7 +72,6 @@ renderPlot({
    
    if (input$trial == "All Trials"){
      
-
      p <- ggplot(combine_trials(class_data), aes(x=all_trials))
      
    } else if (input$trial == "1st") {
@@ -79,22 +88,12 @@ renderPlot({
      
    }
    p <- p +
-        geom_dotplot() + 
+        geom_dotplot() +
         scale_x_continuous(breaks=seq(2,200,1)) +
-        xlab("Number of Seconds") +
-        theme(
-          text=element_text(size=25),
-          axis.line.y =element_blank(),
-          axis.text.y=element_blank(),
-          axis.text.x=element_text(angle=60,hjust = 1),
-          axis.ticks.y = element_blank(),
-          axis.title.y=element_blank(),
-          panel.grid.major.y = element_blank(),
-          panel.grid.minor.y = element_blank(),
-          legend.position="none"
-        )
+        xlab("Number of Seconds") + 
+        plot_options
   } 
-   p
+   return(p)
 })
 
 ```
@@ -123,7 +122,6 @@ renderPlot({
    
    if (input$trial == "All Trials"){
       typical_data <- filterdf(combine_trials(class_data),"all_trials", est_avg-est_sd, est_avg + est_sd)
-      print(typical_data$all_trials)
       p <- ggplot(combine_trials(class_data), aes(x=all_trials)) + 
         geom_dotplot() +
         geom_dotplot(data=typical_data,aes(x=all_trials,fill='red'))
@@ -152,19 +150,9 @@ renderPlot({
    p <- p +
         scale_x_continuous(breaks=seq(2,200,1)) +
         xlab("Number of Seconds") +
-        theme(
-          text=element_text(size=25),
-          axis.line.y =element_blank(),
-          axis.text.x=element_text(angle=60,hjust = 1),
-          axis.text.y=element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.title.y=element_blank(),
-          panel.grid.major.y = element_blank(),
-          panel.grid.minor.y = element_blank(),
-          legend.position="none"
-        )
+        plot_options
   } 
-   p
+   return(p)
    
 })
 
